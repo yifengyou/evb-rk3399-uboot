@@ -5,15 +5,29 @@
 # SPDX-License-Identifier: GPL-2.0
 #
 
+# 常规uboot编译流程
+# 1. 清理，清理旧编译环境              make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- distclean
+# 2. 配置，根据配置文件制作.config文件  make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- firefly-rk3399
+# 3. 编译，生成uboot.bin             make V=1  ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j`nproc`
+
+# yifengyou: 有错误是退出
 set -e
+# yifengyou: 打开shell执行语句输出
+#set -x
+
+
+# 先定义环境变量
 JOB=`sed -n "N;/processor/p" /proc/cpuinfo|wc -l`
 SUPPORT_LIST=`ls configs/*[r,p][x,v,k][0-9][0-9]*_defconfig`
 CMD_ARGS=$1
 
 ########################################### User can modify #############################################
-RKBIN_TOOLS=../rkbin/tools
-CROSS_COMPILE_ARM32=../prebuilts/gcc/linux-x86/arm/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
-CROSS_COMPILE_ARM64=../prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+RKBIN_TOOLS=../rockchip-linux-rkbin.git/tools
+#CROSS_COMPILE_ARM32=../prebuilts/gcc/linux-x86/arm/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+#CROSS_COMPILE_ARM64=../prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+#CROSS_COMPILE_ARM32=../prebuilts/gcc/linux-x86/arm/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+
+CROSS_COMPILE_ARM64=../gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 ########################################### User not touch #############################################
 # Declare global INI file searching index name for every chip, update in select_chip_info()
 RKCHIP=
@@ -51,6 +65,9 @@ SCRIPT_DECOMP="${SRCTREE}/scripts/decomp.sh"
 CC_FILE=".cc"
 REP_DIR="./rep"
 #########################################################################################################
+
+# 函数集合
+
 function help()
 {
 	echo
@@ -67,8 +84,9 @@ function help()
 	echo "Example:"
 	echo
 	echo "1. Build:"
+	echo "	./make.sh eaidk-610-rk3399         --- build for eaidk-610-rk3399_defconfig"
+	echo "	./make.sh firefly-rk3399           --- build for firefly-rk3399_defconfig"
 	echo "	./make.sh evb-rk3399               --- build for evb-rk3399_defconfig"
-	echo "	./make.sh firefly-rk3288           --- build for firefly-rk3288_defconfig"
 	echo "	./make.sh EXT_DTB=rk-kernel.dtb    --- build with exist .config and external dtb"
 	echo "	./make.sh                          --- build with exist .config"
 	echo "	./make.sh env                      --- build envtools"
@@ -236,12 +254,12 @@ function process_args()
 						BASE1_DEFCONFIG=`filt_val "CONFIG_BASE_DEFCONFIG" configs/${ARG_BOARD}.config`
 						BASE0_DEFCONFIG=`filt_val "CONFIG_BASE_DEFCONFIG" configs/${BASE1_DEFCONFIG}`
 						MAKE_CMD="make ${BASE0_DEFCONFIG} ${BASE1_DEFCONFIG} ${ARG_BOARD}.config -j${JOB}"
-						echo "## ${MAKE_CMD}"
+						echo "## CMD: ${MAKE_CMD}"
 						make ${BASE0_DEFCONFIG} ${BASE1_DEFCONFIG} ${ARG_BOARD}.config ${OPTION}
 						rm -f ${CC_FILE}
 					else
 						MAKE_CMD="make ${ARG_BOARD}_defconfig -j${JOB}"
-						echo "## ${MAKE_CMD}"
+						echo "## CMD: ${MAKE_CMD}"
 						make ${ARG_BOARD}_defconfig ${OPTION}
 						rm -f ${CC_FILE}
 					fi
@@ -709,7 +727,7 @@ function pack_trust_image()
 		${SCRIPT_TOS} --ini ${INI_TRUST} --base ${DRAM_BASE} ${PLAT_TRUST_SIZE}
 	fi
 	cd -
-	if [ -f ${RKBIN}/trust*.img ]; then
+	if [ -f "${RKBIN}/trust*.img" ]; then
 		mv ${RKBIN}/trust*.img ./
 	fi
 }
@@ -768,25 +786,80 @@ function pack_images()
 
 function finish()
 {
+	# yifengyou: 打印编译成功输出，告诉你是否用已有的.config
 	echo
 	if [ "${ARG_BOARD}" == "" ]; then
 		echo "Platform ${RKCHIP_LABEL} is build OK, with exist .config"
 	else
-		echo "Platform ${RKCHIP_LABEL} is build OK, with new .config(${MAKE_CMD})"
+		echo "Platform ${RKCHIP_LABEL} is build OK, with new .config(CMD: ${MAKE_CMD} )"
 	fi
 }
 
+# 脚本入口，执行流
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## RUN process_args $*"
 process_args $*
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD prepare"
 prepare
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD select_toolchain"
 select_toolchain
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD select_chip_info"
 select_chip_info
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD fixup_platform_configure"
 fixup_platform_configure
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD select_ini_file"
 select_ini_file
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD handle_args_late"
 handle_args_late
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD sub_commands"
 sub_commands
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD clean_files"
 clean_files
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "## CMD make PYTHON=python2 CROSS_COMPILE=${TOOLCHAIN} all --jobs=${JOB}"
 make PYTHON=python2 CROSS_COMPILE=${TOOLCHAIN} all --jobs=${JOB}
+echo ""
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD pack_images"
 pack_images
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## CMD finish"
 finish
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+
+echo "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+echo "## print build env"
 echo ${TOOLCHAIN}
 date
+echo "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
