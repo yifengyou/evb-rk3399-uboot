@@ -10,16 +10,11 @@ make distclean
 echo "make distclean done! [$?]"
 
 echo    "******************************"
-echo    "*     Make Uboot Config      *"
+echo    "*     Make Uboot             *"
 echo    "******************************"
-#make ARCH=arm  CROSS_COMPILE="aarch64-linux-gnu-" rk3399_linux_defconfig
-./make.sh evb-rk3399
-echo "make rk3399_linux_defconfig done! [$?]"
+./make.sh evb-rk3399 | tee log.build_evb-rk3399
+echo "make evb-rk3399 done! [$?]"
 
-echo    "******************************"
-echo    "*     Make AArch64 Uboot     *"
-echo    "******************************"
-#make ARCH=arm V=1 CROSS_COMPILE="aarch64-linux-gnu-" ARCHV=aarch64 --jobs=`nproc`
-echo "make done! [$?]"
+ls -alh *.img rk3399_loader
 
 exit 0

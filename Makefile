@@ -359,7 +359,10 @@ KBUILD_CPPFLAGS := -D__KERNEL__ -D__UBOOT__
 
 KBUILD_CFLAGS   := -Wall -Wstrict-prototypes \
 		   -Wno-format-security \
-		   -fno-builtin -ffreestanding
+		   -fno-builtin -ffreestanding \
+		   -Wno-maybe-uninitialized \
+		   -Wno-switch-unreachable
+
 KBUILD_CFLAGS	+= -fshort-wchar -Werror
 KBUILD_AFLAGS   := -D__ASSEMBLY__
 
