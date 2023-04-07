@@ -1,4 +1,4 @@
 #!/bin/bash
 
 make distclean
-./make.sh firefly-rk3399
+./make.sh evb-rk3399
