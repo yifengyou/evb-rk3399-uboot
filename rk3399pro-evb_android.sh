@@ -12,8 +12,11 @@ echo "make distclean done! [$?]"
 echo    "******************************"
 echo    "*     Make Uboot             *"
 echo    "******************************"
-./make.sh android6.0-rk3399 | tee log.build_android6.0-rk3399
-echo "make evb-rk3399 done! [$?]"
+# arch/arm/dts/rk3399-evb.dts
+# configs/rk3399pro_defconfig 
+
+./make.sh rk3399pro | tee log.build_rk3399pro
+echo "make rk3399pro done! [$?]"
 
 ls -alh *.img rk3399_loader*
 

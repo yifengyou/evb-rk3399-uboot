@@ -12,8 +12,9 @@ echo "make distclean done! [$?]"
 echo    "******************************"
 echo    "*     Make Uboot             *"
 echo    "******************************"
-./make.sh evb-rk3399 | tee log.build_evb-rk3399
-echo "make evb-rk3399 done! [$?]"
+#./make.sh evb-rk3399 | tee log.build_evb-rk3399
+./make.sh rk3399pro | tee log.build_rk3399pro
+echo "make rk3399pro done! [$?]"
 
 ls -alh *.img rk3399_loader*
 
