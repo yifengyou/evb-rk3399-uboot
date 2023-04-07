@@ -50,6 +50,8 @@ if [ ${BIN_KB} -gt ${MAX_KB} ]; then
 	exit 1
 fi
 
-../rockchip-linux-rkbin.git/tools/loaderimage --pack --uboot u-boot.bin uboot.img ${LOAD_ADDR} ${SIZE}
+echo " CMD: /data/armbian/armbian.git/rockchip-linux-u-boot.git/tools/loaderimage --pack --uboot u-boot.bin uboot.img ${LOAD_ADDR} ${SIZE}"
+/data/armbian/armbian.git/rockchip-linux-u-boot.git/tools/loaderimage --pack \
+	--uboot u-boot.bin uboot.img ${LOAD_ADDR} ${SIZE}
 echo "pack uboot okay! Input: u-boot.bin"
 echo

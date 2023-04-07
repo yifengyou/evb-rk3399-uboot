@@ -49,6 +49,7 @@ if [ ${COUNT} -eq 1 ]; then
 	IMG=`sed -n "/PATH=/p" ${INI} | tr -d '\r' | cut -d '=' -f 2`
 	cp ${IMG} ./trust.img
 else
+	echo " CMD: ./tools/trust_merger ${INI} ${SIZE} ${SHA} ${RSA}"
 	./tools/trust_merger ${INI} ${SIZE} ${SHA} ${RSA}
 fi
 

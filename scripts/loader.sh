@@ -35,6 +35,7 @@ if [ ${COUNT} -eq 1 ]; then
 	IMG=`sed -n "/PATH=/p" ${INI} | tr -d '\r' | cut -d '=' -f 2`
 	cp ${IMG} ./
 else
+	echo " CMD: ./tools/boot_merger ${INI}"
 	./tools/boot_merger ${INI}
 fi
 
